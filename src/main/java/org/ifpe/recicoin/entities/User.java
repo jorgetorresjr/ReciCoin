@@ -1,13 +1,17 @@
 package org.ifpe.recicoin.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
+
+@Table(name = "users")
 @Entity
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,6 +23,7 @@ public class User {
     private String state;
     private String city;
     private Long points;
+    private UserRole role;
 
     public User() {}
 
@@ -84,5 +89,31 @@ public class User {
 
     public void setPoints(Long points) {
         this.points = points;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if(this.role == UserRole.ADMIN) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), (new SimpleGrantedAuthority("ROLE_USER")), (new SimpleGrantedAuthority("ROLE_COMPANY")), (new SimpleGrantedAuthority("ROLE_COLLECTION_POINT")));
+        } else if (this.role == UserRole.USER) {
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        } else if (this.role == UserRole.COMPANY) {
+            return List.of(new SimpleGrantedAuthority("ROLE_COMPANY"));
+        } else {
+            return List.of(new SimpleGrantedAuthority("ROLE_COLLECTION_POINT"));
+        }
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 }

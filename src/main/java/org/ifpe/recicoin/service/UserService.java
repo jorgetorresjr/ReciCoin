@@ -3,6 +3,7 @@ package org.ifpe.recicoin.service;
 import org.ifpe.recicoin.entities.User;
 import org.ifpe.recicoin.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public User findByEmail(String email) {
+    public UserDetails findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
