@@ -6,7 +6,7 @@ public enum UserRole {
     COMPANY("company"),
     COLLECTION_POINT("collection_point");
 
-    private String role;
+    private final String role;
 
     UserRole(String role) {
         this.role = role;

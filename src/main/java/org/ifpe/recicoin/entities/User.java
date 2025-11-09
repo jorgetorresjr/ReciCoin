@@ -22,7 +22,8 @@ public class User implements UserDetails {
     private String phone;
     private String state;
     private String city;
-    private Long points;
+    private Long points = 0L;
+    @Enumerated(EnumType.STRING)
     private UserRole role;
 
     public User() {}
@@ -102,7 +103,10 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if(this.role == UserRole.ADMIN) {
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), (new SimpleGrantedAuthority("ROLE_USER")), (new SimpleGrantedAuthority("ROLE_COMPANY")), (new SimpleGrantedAuthority("ROLE_COLLECTION_POINT")));
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    (new SimpleGrantedAuthority("ROLE_USER")),
+                    (new SimpleGrantedAuthority("ROLE_COMPANY")),
+                    (new SimpleGrantedAuthority("ROLE_COLLECTION_POINT")));
         } else if (this.role == UserRole.USER) {
             return List.of(new SimpleGrantedAuthority("ROLE_USER"));
         } else if (this.role == UserRole.COMPANY) {
@@ -110,6 +114,26 @@ public class User implements UserDetails {
         } else {
             return List.of(new SimpleGrantedAuthority("ROLE_COLLECTION_POINT"));
         }
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override
