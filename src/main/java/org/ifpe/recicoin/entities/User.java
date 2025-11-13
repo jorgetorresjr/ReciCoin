@@ -1,13 +1,20 @@
 package org.ifpe.recicoin.entities;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 
 @Table(name = "users")
 @Entity
@@ -104,15 +111,9 @@ public class User implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if(this.role == UserRole.ADMIN) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
-                    (new SimpleGrantedAuthority("ROLE_USER")),
-                    (new SimpleGrantedAuthority("ROLE_COMPANY")),
-                    (new SimpleGrantedAuthority("ROLE_COLLECTION_POINT")));
-        } else if (this.role == UserRole.USER) {
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        } else if (this.role == UserRole.COMPANY) {
-            return List.of(new SimpleGrantedAuthority("ROLE_COMPANY"));
+                    (new SimpleGrantedAuthority("ROLE_USER")));
         } else {
-            return List.of(new SimpleGrantedAuthority("ROLE_COLLECTION_POINT"));
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
         }
     }
 
