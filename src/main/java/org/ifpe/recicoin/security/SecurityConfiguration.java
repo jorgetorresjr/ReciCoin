@@ -19,18 +19,21 @@ public class SecurityConfiguration {
     @Autowired
     SecurityFilter securityFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        .requestMatchers("/auth/collection-point/login", "/auth/collection-point/register").permitAll()
-                        .anyRequest().authenticated()
-                ).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    return httpSecurity
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/auth/**").permitAll() 
+                    .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                    .requestMatchers("/", "/login", "/cadastro", "/cadastro-ponto").permitAll()
+                    .requestMatchers("/pontos-coleta", "/collection-point/all").permitAll()
+                    
+                    .anyRequest().authenticated()
+            ).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
+}
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

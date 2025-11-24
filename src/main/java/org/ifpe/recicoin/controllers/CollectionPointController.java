@@ -1,5 +1,7 @@
 package org.ifpe.recicoin.controllers;
 
+import java.util.List;
+
 import org.ifpe.recicoin.entities.CollectionPoint;
 import org.ifpe.recicoin.repositories.CollectionPointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,12 @@ public class CollectionPointController {
         CollectionPoint collectionPoint = (CollectionPoint) SecurityContextHolder
                 .getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(collectionPoint);
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<List<CollectionPoint>> getAllPoints() {
+        List<CollectionPoint> points = collectionPointRepository.findAll();
+        return ResponseEntity.ok(points);
     }
 
 
