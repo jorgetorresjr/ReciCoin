@@ -105,44 +105,11 @@ public class CollectionPoint implements UserDetails {
         this.description = description;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_COLLECTION_POINT"));
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
+    
     public void setPassword(String password) {
         this.password = password;
     }
-
+    
     public LocalTime getOpeningTime() {
         return openingTime;
     }
@@ -166,4 +133,38 @@ public class CollectionPoint implements UserDetails {
     public void setRole(UserRole role) {
         this.role = role;
     }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_COLLECTION_POINT"));
+    }
+    
+    public String getPassword() {
+        return password;
+    }
+    
+    @Override
+    public String getUsername() {
+        return email;
+    }
+    
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+    
 }

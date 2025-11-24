@@ -28,18 +28,29 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         var token = this.recoverToken(request);
+
         if (token != null) {
-            var email = tokenService.validateToken(token);
-            UserDetails user = userRepository.findByEmail(email);
+            try {
+                var email = tokenService.validateToken(token);
+                UserDetails user = userRepository.findByEmail(email);
 
-            if (user == null) {
-                user = collectionPointRepository.findByEmail(email);
-            }
+                if (user == null) {
+                    user = collectionPointRepository.findByEmail(email);
+                }
 
-            if (user != null) {
-                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (user != null) {
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
             }
         }
         filterChain.doFilter(request, response);
@@ -47,15 +58,11 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private String recoverToken(HttpServletRequest request) {
         var header = request.getHeader("Authorization");
-        if (header == null) {
+        if (header == null || !header.startsWith("Bearer ")) {
             return null;
         }
-        return header.replace("Bearer ", "");
+
+        return header.substring(7);
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String path = request.getServletPath();
-        return path.startsWith("/auth/");
-    }
 }
