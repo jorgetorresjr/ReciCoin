@@ -98,4 +98,9 @@ public class DropoffAppointment {
         this.user = user;
     }
 
+    public void setScheduledDate(LocalDateTime dateTime) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setScheduledDate'");
+    }
+
 }

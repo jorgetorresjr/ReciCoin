@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/custom.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
 
     <div class="container auth-container">
@@ -15,8 +17,10 @@
             <p class="mb-3">Entre para transformar o mundo.</p>
 
             <div style="margin-bottom: 20px;">
-                <button type="button" class="btn btn-secondary" onclick="setLoginType('user')" id="btnUser">Sou Usuário</button>
-                <button type="button" class="btn btn-secondary" onclick="setLoginType('point')" id="btnPoint">Sou Ponto de Coleta</button>
+                <button type="button" class="btn btn-secondary" onclick="setLoginType('user')" id="btnUser">Sou
+                    Usuário</button>
+                <button type="button" class="btn btn-secondary" onclick="setLoginType('point')" id="btnPoint">Sou Ponto
+                    de Coleta</button>
             </div>
 
             <form id="loginForm">
@@ -35,7 +39,7 @@
 
             <div class="mt-3">
                 <p>Não tem conta?</p>
-                <a href="/cadastro">Cadastrar Usuário</a> | 
+                <a href="/cadastro">Cadastrar Usuário</a> |
                 <a href="/cadastro-ponto">Cadastrar Ponto</a>
             </div>
         </div>
@@ -47,7 +51,7 @@
         function setLoginType(type) {
             document.getElementById('btnUser').style.backgroundColor = type === 'user' ? 'var(--cor-primaria)' : 'transparent';
             document.getElementById('btnUser').style.color = type === 'user' ? '#fff' : 'var(--cor-primaria)';
-            
+
             document.getElementById('btnPoint').style.backgroundColor = type === 'point' ? 'var(--cor-primaria)' : 'transparent';
             document.getElementById('btnPoint').style.color = type === 'point' ? '#fff' : 'var(--cor-primaria)';
 
@@ -59,7 +63,7 @@
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
@@ -69,19 +73,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('token', data.token);
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
 
-                if (loginUrl.includes('collection-point')) {
-                    alert('Bem-vindo, parceiro! (Futuramente: Ir para Dashboard)');
+                    if (loginUrl.includes('collection-point')) {
+                        window.location.href = '/meu-painel'; // <--- AGORA REDIRECIONA CERTO
+                    } else {
+                        window.location.href = '/pontos-coleta';
+                    }
+
                 } else {
-                    window.location.href = '/pontos-coleta';
+                    alert('Erro no login. Verifique suas credenciais.');
                 }
-
-            } else {
-                alert('Erro no login. Verifique suas credenciais.');
-            }
             } catch (error) {
                 console.error('Erro ao tentar logar:', error);
                 alert('Ocorreu um erro. Tente novamente mais tarde.');
@@ -89,4 +93,5 @@ if (response.ok) {
         });
     </script>
 </body>
+
 </html>

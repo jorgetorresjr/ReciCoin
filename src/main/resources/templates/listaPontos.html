@@ -6,167 +6,153 @@
     <link rel="stylesheet" th:href="@{/css/custom.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .points-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .point-card {
-            background: white;
-            border-radius: var(--borda-arredondada);
-            padding: 25px;
-            box-shadow: var(--sombra-suave);
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .point-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--cor-primaria);
-        }
-
-        .point-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .point-icon {
-            width: 50px;
-            height: 50px;
-            background-color: #E8F5E9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--cor-primaria);
-            font-size: 1.5rem;
-        }
-
-        .point-info {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 8px;
-        }
+        .points-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .point-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; }
+        .point-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .point-icon { width: 50px; height: 50px; background-color: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-size: 1.5rem; }
         
-        .status-badge {
-            background-color: var(--cor-primaria);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin-top: 10px;
-        }
+        /* Modal Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <nav style="background: white; padding: 15px; box-shadow: var(--sombra-suave); display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0; color: var(--cor-primaria); cursor: pointer;" onclick="window.location.href='/'">
-            <i class="fas fa-leaf"></i> ReciCoin
-        </h2>
-        
+    <nav style="background: white; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; color: #2E7D32; cursor: pointer;" onclick="window.location.href='/'"><i class="fas fa-leaf"></i> ReciCoin</h2>
         <div id="navButtons">
-            <a href="/login" class="btn btn-secondary" style="padding: 8px 20px; font-size: 0.9rem;">Entrar</a>
-            <a href="/cadastro" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.9rem;">Cadastrar</a>
+            <a href="/login" class="btn btn-secondary">Entrar</a>
         </div>
     </nav>
 
     <div class="container" style="margin-top: 40px;">
         <div class="text-center">
             <h1>Encontre um Ponto de Coleta</h1>
-            <p>Descubra onde reciclar perto de você e ajude o planeta.</p>
+            <p>Agende a entrega dos seus resíduos.</p>
         </div>
-
         <div id="pointsContainer" class="points-grid">
-            <p class="text-center" style="width: 100%;">Carregando pontos...</p>
+            <p class="text-center">Carregando...</p>
+        </div>
+    </div>
+
+    <div id="scheduleModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Agendar Coleta</h3>
+            <p id="modalPointName" style="color: #666; margin-bottom: 20px;"></p>
+            
+            <form id="scheduleForm">
+                <input type="hidden" id="selectedPointId">
+                <input type="hidden" id="pointOpenTime">
+                <input type="hidden" id="pointCloseTime">
+
+                <div class="form-group">
+                    <label class="form-label">Data e Hora</label>
+                    <input type="datetime-local" id="appointmentDate" class="form-control" required>
+                    <small id="timeWarning" style="color: red; display: none;">Horário inválido! O local funciona das <span id="lblOpen"></span> às <span id="lblClose"></span>.</small>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
         const token = localStorage.getItem('token');
-        const navButtons = document.getElementById('navButtons');
 
+        // Configura Navbar
         if (token) {
-            navButtons.innerHTML = `
-                <span style="margin-right: 15px; font-weight: 600; color: var(--cor-primaria);">Olá, Reciclador!</span>
-                <button onclick="logout()" class="btn btn-secondary" style="padding: 8px 20px; font-size: 0.9rem; border-color: #d32f2f; color: #d32f2f;">Sair</button>
-            `;
+            document.getElementById('navButtons').innerHTML = `<button onclick="logout()" class="btn btn-secondary" style="border-color: red; color: red;">Sair</button>`;
         }
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = '/login';
-        }
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
+
+        // Carrega Pontos
         document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('pointsContainer');
-            
             try {
                 const response = await fetch('/collection-point/all');
-                
-                if (!response.ok) throw new Error('Erro ao buscar dados');
-                
                 const points = await response.json();
-
+                
                 container.innerHTML = '';
-
-                if (points.length === 0) {
-                    container.innerHTML = '<p class="text-center">Nenhum ponto cadastrado ainda.</p>';
-                    return;
-                }
-
                 points.forEach(point => {
-                    const card = document.createElement('div');
-                    card.className = 'point-card';
+                    // Adiciona botão de agendar SOMENTE se estiver logado
+                    const btnAgendar = token 
+                        ? `<button onclick="openModal('${point.id}', '${point.name}', '${point.openingTime}', '${point.closingTime}')" class="btn btn-primary" style="width:100%; margin-top:15px;">Agendar Entrega</button>` 
+                        : `<p style="font-size:0.8rem; color:red; text-align:center; margin-top:10px;">Faça login para agendar</p>`;
 
-                    card.innerHTML = `
-                        <div>
-                            <div class="point-header">
-                                <div class="point-icon"><i class="fas fa-recycle"></i></div>
-                                <h3 style="margin: 0; font-size: 1.2rem;">${point.name}</h3>
+                    container.innerHTML += `
+                        <div class="point-card">
+                            <div>
+                                <div class="point-header">
+                                    <div class="point-icon"><i class="fas fa-recycle"></i></div>
+                                    <h3>${point.name}</h3>
+                                </div>
+                                <p>"${point.description || 'Recebemos recicláveis.'}"</p>
+                                <p><i class="far fa-clock"></i> ${point.openingTime} - ${point.closingTime}</p>
+                                <p><i class="fas fa-map-marker-alt"></i> ${point.address}, ${point.city}</p>
                             </div>
-                            
-                            <p style="font-style: italic; color: #555; margin-bottom: 15px;">
-                                "${point.description || 'Recebemos recicláveis em geral.'}"
-                            </p>
+                            ${btnAgendar}
+                        </div>`;
+                });
+            } catch (e) { container.innerHTML = '<p>Erro ao carregar.</p>'; }
+        });
 
-                            <div class="point-info">
-                                <i class="fas fa-map-marker-alt" style="width: 20px;"></i>
-                                ${point.address || 'Endereço não informado'}, ${point.city} - ${point.state}
-                            </div>
-                            
-                            <div class="point-info">
-                                <i class="far fa-clock" style="width: 20px;"></i>
-                                ${point.openingTime} às ${point.closingTime}
-                            </div>
+        // Lógica do Modal
+        function openModal(id, name, open, close) {
+            document.getElementById('scheduleModal').style.display = 'flex';
+            document.getElementById('modalPointName').innerText = name;
+            document.getElementById('selectedPointId').value = id;
+            document.getElementById('pointOpenTime').value = open; // Formato HH:mm:ss
+            document.getElementById('pointCloseTime').value = close;
+            
+            document.getElementById('lblOpen').innerText = open.substring(0,5);
+            document.getElementById('lblClose').innerText = close.substring(0,5);
+        }
 
-                            <div class="point-info">
-                                <i class="fas fa-phone" style="width: 20px;"></i>
-                                ${point.phone || 'Sem telefone'}
-                            </div>
-                        </div>
+        function closeModal() {
+            document.getElementById('scheduleModal').style.display = 'none';
+            document.getElementById('timeWarning').style.display = 'none';
+        }
 
-                        <div class="text-center">
-                            <span class="status-badge">Aberto para coleta</span>
-                        </div>
-                    `;
-                    
-                    container.appendChild(card);
+        // Validação e Envio
+        document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const dateInput = document.getElementById('appointmentDate').value; // YYYY-MM-DDTHH:mm
+            const timePart = dateInput.split('T')[1] + ":00"; // HH:mm:00
+            
+            const open = document.getElementById('pointOpenTime').value;
+            const close = document.getElementById('pointCloseTime').value;
+
+            // Validação simples de horário
+            if (timePart < open || timePart > close) {
+                document.getElementById('timeWarning').style.display = 'block';
+                return;
+            }
+
+            const payload = {
+                collectionPointId: document.getElementById('selectedPointId').value,
+                dateTime: dateInput
+            };
+
+            try {
+                const response = await fetch('/appointments/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(payload)
                 });
 
-            } catch (error) {
-                console.error(error);
-                container.innerHTML = '<p class="text-center" style="color: red;">Erro ao carregar os pontos de coleta.</p>';
-            }
+                if (response.ok) {
+                    alert('Agendamento realizado com sucesso!');
+                    closeModal();
+                } else {
+                    alert('Erro ao agendar.');
+                }
+            } catch (error) { alert('Erro de conexão'); }
         });
     </script>
-
 </body>
 </html>

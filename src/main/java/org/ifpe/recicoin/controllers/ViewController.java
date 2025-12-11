@@ -6,6 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ViewController {
 
+    // [NOVO] Quando acessar localhost:8080, manda para o Login
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/login"; 
+    }
+
     @GetMapping("/login")
     public String loginPage() {
         return "login";
@@ -13,16 +19,21 @@ public class ViewController {
 
     @GetMapping("/cadastro")
     public String registerUserPage() {
-        return "cadastroUser"; 
+        return "cadastroUser";
     }
 
     @GetMapping("/cadastro-ponto")
     public String registerPointPage() {
-        return "cadastroPonto"; 
+        return "cadastroPonto";
     }
-
+    
     @GetMapping("/pontos-coleta")
     public String listPointsPage() {
         return "listaPontos";
+    }
+
+    @GetMapping("/meu-painel")
+    public String dashboardPage() {
+        return "dashboardPonto";
     }
 }
