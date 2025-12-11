@@ -37,7 +37,13 @@ public class SecurityConfiguration {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"
+
+                                ,"/pontos-coleta",
+                                "/collection-point/all",
+                                "/agendamentos"
                         ).permitAll()
+//                        .requestMatchers("/pontos-coleta", "/collection-point/all").hasRole("USER")
+//                        .requestMatchers("/agendamentos").hasRole("COLLECTION_POINT")
                         .anyRequest().authenticated()
                 ).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
