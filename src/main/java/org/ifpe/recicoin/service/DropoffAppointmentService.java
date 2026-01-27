@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class DroppoffAppointmentService {
+public class DropoffAppointmentService {
     @Autowired
     private DropoffAppointmentRepository dropoffAppointmentRepository;
 

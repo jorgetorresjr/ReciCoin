@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+
     @Autowired
     SecurityFilter securityFilter;
 
@@ -23,29 +24,24 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/login",
-                                "/auth/register",
-                                "/auth/collection-point/login",
-                                "/auth/collection-point/register",
-                                "/login",
-                                "/cadastro",
-                                "/cadastro-ponto",
-                                "/register",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**"
 
-                                ,"/pontos-coleta",
-                                "/collection-point/all",
-                                "/agendamentos"
-                        ).permitAll()
-//                        .requestMatchers("/pontos-coleta", "/collection-point/all").hasRole("USER")
-//                        .requestMatchers("/agendamentos").hasRole("COLLECTION_POINT")
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                
+                .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
+
+
+                        .requestMatchers("/auth/**").permitAll()
+
+
+                        .requestMatchers("/", "/login", "/cadastro", "/cadastro-ponto", "/pontos-coleta", "/meu-painel").permitAll()
+
+                        .requestMatchers("/collection-point/all").permitAll()
+
                         .anyRequest().authenticated()
-                ).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                )
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

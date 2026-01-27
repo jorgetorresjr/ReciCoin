@@ -74,11 +74,11 @@ public class DropoffAppointment {
         this.createdAt = createdAt;
     }
 
-    public int getPointsAwarded() {
+    public Integer getPointsAwarded() {
         return pointsAwarded;
     }
 
-    public void setPointsAwarded(int pointsAwarded) {
+    public void setPointsAwarded(Integer pointsAwarded) {
         this.pointsAwarded = pointsAwarded;
     }
 
