@@ -74,11 +74,11 @@ public class DropoffAppointment {
         this.createdAt = createdAt;
     }
 
-    public int getPointsAwarded() {
+    public Integer getPointsAwarded() {
         return pointsAwarded;
     }
 
-    public void setPointsAwarded(int pointsAwarded) {
+    public void setPointsAwarded(Integer pointsAwarded) {
         this.pointsAwarded = pointsAwarded;
     }
 
@@ -96,11 +96,6 @@ public class DropoffAppointment {
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public void setScheduledDate(LocalDateTime dateTime) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setScheduledDate'");
     }
 
 }

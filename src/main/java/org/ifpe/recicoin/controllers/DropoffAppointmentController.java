@@ -32,7 +32,7 @@ public class DropoffAppointmentController {
         DropoffAppointment appointment = new DropoffAppointment();
         appointment.setUser(user);
         appointment.setCollectionPoint(point);
-        appointment.setScheduledDate(dto.dateTime());
+        appointment.setScheduledDateTime(dto.dateTime());
         appointment.setStatus(AppointmentStatus.SCHEDULED); 
 
         appointmentRepository.save(appointment);
