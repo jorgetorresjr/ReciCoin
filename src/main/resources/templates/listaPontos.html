@@ -10,8 +10,7 @@
         .point-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; }
         .point-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .point-icon { width: 50px; height: 50px; background-color: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-size: 1.5rem; }
-        
-        /* Modal Styles */
+
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
     </style>
@@ -51,6 +50,11 @@
                     <small id="timeWarning" style="color: red; display: none;">Horário inválido! O local funciona das <span id="lblOpen"></span> às <span id="lblClose"></span>.</small>
                 </div>
                 
+                <div class="form-group" style="margin-top: 15px; text-align: left;">
+                    <label class="form-label">O que você vai entregar?</label>
+                    <textarea id="appointmentDesc" class="form-control" rows="3" placeholder="Ex: 10 garrafas PET, papelão..." style="width: 100%; margin-top: 5px;" required></textarea>
+                </div>
+
                 <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Confirmar</button>
@@ -59,17 +63,30 @@
         </div>
     </div>
 
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px; text-align: left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color: #2E7D32;">Meus Agendamentos</h3>
+                <button onclick="closeHistory()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="historyList" style="max-height: 300px; overflow-y: auto;">
+                <p class="text-center">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         const token = localStorage.getItem('token');
 
-        // Configura Navbar
         if (token) {
-            document.getElementById('navButtons').innerHTML = `<button onclick="logout()" class="btn btn-secondary" style="border-color: red; color: red;">Sair</button>`;
+            document.getElementById('navButtons').innerHTML = `
+                <button onclick="openHistory()" class="btn btn-primary" style="margin-right: 10px; background-color: #2E7D32; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Meus Agendamentos</button>
+                <button onclick="logout()" class="btn btn-secondary" style="border-color: red; color: red; background: white; border: 1px solid red; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Sair</button>
+            `;
         }
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
 
-        // Carrega Pontos
         document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('pointsContainer');
             try {
@@ -78,9 +95,8 @@
                 
                 container.innerHTML = '';
                 points.forEach(point => {
-                    // Adiciona botão de agendar SOMENTE se estiver logado
                     const btnAgendar = token 
-                        ? `<button onclick="openModal('${point.id}', '${point.name}', '${point.openingTime}', '${point.closingTime}')" class="btn btn-primary" style="width:100%; margin-top:15px;">Agendar Entrega</button>` 
+                        ? `<button onclick="openModal('${point.id}', '${point.name}', '${point.openingTime}', '${point.closingTime}')" class="btn btn-primary" style="width:100%; margin-top:15px; background-color: #2E7D32; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">Agendar Entrega</button>` 
                         : `<p style="font-size:0.8rem; color:red; text-align:center; margin-top:10px;">Faça login para agendar</p>`;
 
                     container.innerHTML += `
@@ -100,14 +116,12 @@
             } catch (e) { container.innerHTML = '<p>Erro ao carregar.</p>'; }
         });
 
-        // Lógica do Modal
         function openModal(id, name, open, close) {
             document.getElementById('scheduleModal').style.display = 'flex';
             document.getElementById('modalPointName').innerText = name;
             document.getElementById('selectedPointId').value = id;
-            document.getElementById('pointOpenTime').value = open; // Formato HH:mm:ss
+            document.getElementById('pointOpenTime').value = open; 
             document.getElementById('pointCloseTime').value = close;
-            
             document.getElementById('lblOpen').innerText = open.substring(0,5);
             document.getElementById('lblClose').innerText = close.substring(0,5);
         }
@@ -117,17 +131,14 @@
             document.getElementById('timeWarning').style.display = 'none';
         }
 
-        // Validação e Envio
         document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const dateInput = document.getElementById('appointmentDate').value; // YYYY-MM-DDTHH:mm
-            const timePart = dateInput.split('T')[1] + ":00"; // HH:mm:00
-            
+            const dateInput = document.getElementById('appointmentDate').value; 
+            const timePart = dateInput.split('T')[1] + ":00";
             const open = document.getElementById('pointOpenTime').value;
             const close = document.getElementById('pointCloseTime').value;
 
-            // Validação simples de horário
             if (timePart < open || timePart > close) {
                 document.getElementById('timeWarning').style.display = 'block';
                 return;
@@ -135,7 +146,8 @@
 
             const payload = {
                 collectionPointId: document.getElementById('selectedPointId').value,
-                dateTime: dateInput
+                dateTime: dateInput + ":00",
+                description: document.getElementById('appointmentDesc').value
             };
 
             try {
@@ -146,13 +158,69 @@
                 });
 
                 if (response.ok) {
-                    alert('Agendamento realizado com sucesso!');
+                    alert('Agendamento realizado! Aguarde a aprovação.');
                     closeModal();
+                    openHistory();
                 } else {
-                    alert('Erro ao agendar.');
+                    const errorMsg = await response.text();
+                    alert('Erro ao agendar: ' + errorMsg);
                 }
             } catch (error) { alert('Erro de conexão'); }
         });
+
+        async function openHistory() {
+            document.getElementById('historyModal').style.display = 'flex';
+            const listDiv = document.getElementById('historyList');
+            listDiv.innerHTML = '<p class="text-center">Carregando...</p>';
+            
+            try {
+                const res = await fetch('/appointments/my-appointments', { 
+                    headers: { 'Authorization': 'Bearer ' + token } 
+                });
+                
+                if (!res.ok) throw new Error("Erro");
+                const list = await res.json();
+
+                if (list.length === 0) {
+                    listDiv.innerHTML = '<p class="text-center">Você não tem agendamentos.</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = list.map(item => {
+                    let statusMap = {
+                        'SCHEDULED': { text: 'Aguardando Aprovação', color: '#FFF3CD', textCol: '#856404' },
+                        'CONFIRMED': { text: 'Aprovado - Leve seu item!', color: '#D1ECF1', textCol: '#0C5460' },
+                        'COMPLETED': { text: 'Coleta Realizada', color: '#D4EDDA', textCol: '#155724' },
+                        'CANCELED':  { text: 'Cancelado', color: '#F8D7DA', textCol: '#721C24' }
+                    };
+                    let st = statusMap[item.status] || { text: item.status, color: '#ccc', textCol: 'black' };
+                    let dataF = "Data Inválida";
+                    if(item.scheduledDateTime) {
+                       const d = new Date(item.scheduledDateTime);
+                       if(!isNaN(d)) dataF = d.toLocaleString('pt-BR');
+                       else if(Array.isArray(item.scheduledDateTime)) {
+                           const a = item.scheduledDateTime;
+                           dataF = new Date(a[0], a[1]-1, a[2], a[3], a[4]).toLocaleString('pt-BR');
+                       }
+                    }
+
+                    return `
+                        <div style="border-bottom:1px solid #eee; padding:10px 0;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <strong>${item.collectionPoint.name}</strong>
+                                <span style="background:${st.color}; color:${st.textCol}; padding:2px 8px; border-radius:10px; font-size:0.8rem; font-weight:bold;">${st.text}</span>
+                            </div>
+                            <small style="color: #333;">${dataF}</small><br>
+                            <small style="color:#666;">Item: ${item.description || '-'}</small>
+                        </div>`;
+                }).join('');
+
+            } catch (e) { listDiv.innerHTML = '<p style="color:red">Erro ao carregar histórico.</p>'; }
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>

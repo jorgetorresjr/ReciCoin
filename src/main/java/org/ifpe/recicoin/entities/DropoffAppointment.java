@@ -2,6 +2,7 @@ package org.ifpe.recicoin.entities;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,6 +25,9 @@ public class DropoffAppointment {
     private AppointmentStatus status;
     private LocalDateTime createdAt;
     private Integer pointsAwarded;
+
+    @Column(length = 500)
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -81,6 +85,12 @@ public class DropoffAppointment {
     public void setPointsAwarded(Integer pointsAwarded) {
         this.pointsAwarded = pointsAwarded;
     }
+    public String getDescription() {   
+        return description; 
+    }
+    
+    public void setDescription(String description) {
+         this.description = description; }
 
     public CollectionPoint getCollectionPoint() {
         return collectionPoint;

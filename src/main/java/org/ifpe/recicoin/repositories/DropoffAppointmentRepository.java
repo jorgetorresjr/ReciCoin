@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DropoffAppointmentRepository extends JpaRepository<DropoffAppointment, Long> {
     List<DropoffAppointment> findByCollectionPoint(CollectionPoint collectionPoint);
+    List<DropoffAppointment> findByUser(org.ifpe.recicoin.entities.User user);
 }
