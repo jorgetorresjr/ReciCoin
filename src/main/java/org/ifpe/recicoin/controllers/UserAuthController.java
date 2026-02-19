@@ -1,9 +1,9 @@
 package org.ifpe.recicoin.controllers;
 
 import jakarta.validation.Valid;
-import org.ifpe.recicoin.entities.LoginDTO;
-import org.ifpe.recicoin.entities.LoginResponseDTO;
-import org.ifpe.recicoin.entities.UserRegisterDTO;
+import org.ifpe.recicoin.entities.DTOs.LoginDTO;
+import org.ifpe.recicoin.entities.DTOs.LoginResponseDTO;
+import org.ifpe.recicoin.entities.DTOs.UserRegisterDTO;
 import org.ifpe.recicoin.entities.User;
 import org.ifpe.recicoin.repositories.UserRepository;
 import org.ifpe.recicoin.service.TokenService;

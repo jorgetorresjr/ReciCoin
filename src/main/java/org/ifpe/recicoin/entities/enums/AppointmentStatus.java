@@ -1,4 +1,4 @@
-package org.ifpe.recicoin.entities;
+package org.ifpe.recicoin.entities.enums;
 
 public enum AppointmentStatus {
     SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, MISSED;

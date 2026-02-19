@@ -1,4 +1,6 @@
-package org.ifpe.recicoin.entities;
+package org.ifpe.recicoin.entities.DTOs;
+
+import org.ifpe.recicoin.entities.enums.UserRole;
 
 import java.time.LocalTime;
 

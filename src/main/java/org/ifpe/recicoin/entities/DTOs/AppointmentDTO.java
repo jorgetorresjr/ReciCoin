@@ -1,4 +1,4 @@
-package org.ifpe.recicoin.entities;
+package org.ifpe.recicoin.entities.DTOs;
 
 import java.time.LocalDateTime;
 

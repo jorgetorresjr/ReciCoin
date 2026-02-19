@@ -1,6 +1,8 @@
 package org.ifpe.recicoin.controllers;
 
 import org.ifpe.recicoin.entities.*;
+import org.ifpe.recicoin.entities.DTOs.AppointmentDTO;
+import org.ifpe.recicoin.entities.enums.AppointmentStatus;
 import org.ifpe.recicoin.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -2,9 +2,9 @@ package org.ifpe.recicoin.controllers;
 
 import jakarta.validation.Valid;
 import org.ifpe.recicoin.entities.Company;
-import org.ifpe.recicoin.entities.CompanyRegisterDTO;
-import org.ifpe.recicoin.entities.LoginDTO;
-import org.ifpe.recicoin.entities.LoginResponseDTO;
+import org.ifpe.recicoin.entities.DTOs.CompanyRegisterDTO;
+import org.ifpe.recicoin.entities.DTOs.LoginDTO;
+import org.ifpe.recicoin.entities.DTOs.LoginResponseDTO;
 import org.ifpe.recicoin.repositories.CompanyRepository;
 import org.ifpe.recicoin.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;

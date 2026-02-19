@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.ifpe.recicoin.entities.enums.AppointmentStatus;
 
 @Table(name = "dropoff_appointment")
 @Entity
@@ -25,6 +26,19 @@ public class DropoffAppointment {
     private AppointmentStatus status;
     private LocalDateTime createdAt;
     private Integer pointsAwarded;
+
+    private Double weightKg;
+
+    @Enumerated(EnumType.STRING)
+    private MaterialType materialType;
+
+    private boolean validated;
+
+    @ManyToOne
+    private User validatedBy;
+
+    private LocalDateTime validatedAt;
+
 
     @Column(length = 500)
     private String description;
@@ -108,4 +122,43 @@ public class DropoffAppointment {
         this.user = user;
     }
 
+    public Double getWeightKg() {
+        return weightKg;
+    }
+
+    public void setWeightKg(Double weightKg) {
+        this.weightKg = weightKg;
+    }
+
+    public MaterialType getMaterialType() {
+        return materialType;
+    }
+
+    public void setMaterialType(MaterialType materialType) {
+        this.materialType = materialType;
+    }
+
+    public boolean isValidated() {
+        return validated;
+    }
+
+    public void setValidated(boolean validated) {
+        this.validated = validated;
+    }
+
+    public User getValidatedBy() {
+        return validatedBy;
+    }
+
+    public void setValidatedBy(User validatedBy) {
+        this.validatedBy = validatedBy;
+    }
+
+    public LocalDateTime getValidatedAt() {
+        return validatedAt;
+    }
+
+    public void setValidatedAt(LocalDateTime validatedAt) {
+        this.validatedAt = validatedAt;
+    }
 }

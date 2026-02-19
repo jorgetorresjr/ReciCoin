@@ -1,14 +1,19 @@
 package org.ifpe.recicoin.service;
 
 import org.ifpe.recicoin.entities.DropoffAppointment;
+import org.ifpe.recicoin.entities.User;
 import org.ifpe.recicoin.repositories.DropoffAppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class DropoffAppointmentService {
+
     @Autowired
     private DropoffAppointmentRepository dropoffAppointmentRepository;
 
@@ -17,13 +22,12 @@ public class DropoffAppointmentService {
     }
 
     public DropoffAppointment updateDropoffAppointment(Long id, DropoffAppointment dropoffAppointment) {
-        DropoffAppointment oldDropoffAppointment = dropoffAppointmentRepository.findById(id).get();
+        DropoffAppointment old = dropoffAppointmentRepository.findById(id).orElseThrow();
 
-        oldDropoffAppointment.setStatus(dropoffAppointment.getStatus());
-        oldDropoffAppointment.setScheduledDateTime(dropoffAppointment.getScheduledDateTime());
-        oldDropoffAppointment.setPointsAwarded(dropoffAppointment.getPointsAwarded());
+        old.setStatus(dropoffAppointment.getStatus());
+        old.setScheduledDateTime(dropoffAppointment.getScheduledDateTime());
 
-        return dropoffAppointmentRepository.save(oldDropoffAppointment);
+        return dropoffAppointmentRepository.save(old);
     }
 
     public void deleteDropoffAppointment(Long id) {
@@ -31,10 +35,23 @@ public class DropoffAppointmentService {
     }
 
     public DropoffAppointment getDropoffAppointment(Long id) {
-        return dropoffAppointmentRepository.findById(id).get();
+        return dropoffAppointmentRepository.findById(id).orElseThrow();
     }
 
     public List<DropoffAppointment> findAll() {
         return dropoffAppointmentRepository.findAll();
     }
+
+    public void validateDelivery(DropoffAppointment ap, User collector, double weight) {
+
+        if (ap.isValidated())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Entrega já confirmada");
+
+        ap.setWeightKg(weight);
+        ap.setValidated(true);
+        ap.setValidatedBy(collector);
+        ap.setValidatedAt(LocalDateTime.now());
+    }
+
+
 }
