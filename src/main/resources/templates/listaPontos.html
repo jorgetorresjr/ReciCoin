@@ -10,9 +10,14 @@
         .point-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; }
         .point-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .point-icon { width: 50px; height: 50px; background-color: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-size: 1.5rem; }
-
+        
+        /* Estilos dos Modais */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; text-align: center; max-height: 90vh; overflow-y: auto;}
+        
+        /* Estilos da Loja */
+        .product-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .coin-badge { background-color: #ffc107; color: #856404; font-weight: bold; padding: 5px 10px; border-radius: 20px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -27,10 +32,10 @@
     <div class="container" style="margin-top: 40px;">
         <div class="text-center">
             <h1>Encontre um Ponto de Coleta</h1>
-            <p>Agende a entrega dos seus resíduos.</p>
+            <p>Agende a entrega dos seus resíduos e ganhe ReciCoins!</p>
         </div>
         <div id="pointsContainer" class="points-grid">
-            <p class="text-center">Carregando...</p>
+            <p class="text-center">A carregar...</p>
         </div>
     </div>
 
@@ -49,10 +54,22 @@
                     <input type="datetime-local" id="appointmentDate" class="form-control" required>
                     <small id="timeWarning" style="color: red; display: none;">Horário inválido! O local funciona das <span id="lblOpen"></span> às <span id="lblClose"></span>.</small>
                 </div>
+
+                <div class="form-group" style="margin-top: 15px; text-align: left;">
+                    <label class="form-label">Tipo de Material</label>
+                    <select id="appointmentMaterial" class="form-control" style="width: 100%; margin-top: 5px;" required>
+                        <option value="">Selecione...</option>
+                        <option value="PLASTIC">Plástico (10 pts/kg)</option>
+                        <option value="METAL">Metal (15 pts/kg)</option>
+                        <option value="GLASS">Vidro (8 pts/kg)</option>
+                        <option value="PAPER">Papel/Papelão (5 pts/kg)</option>
+                        <option value="ELECTRONIC">Eletrônico (25 pts/kg)</option>
+                    </select>
+                </div>
                 
                 <div class="form-group" style="margin-top: 15px; text-align: left;">
-                    <label class="form-label">O que você vai entregar?</label>
-                    <textarea id="appointmentDesc" class="form-control" rows="3" placeholder="Ex: 10 garrafas PET, papelão..." style="width: 100%; margin-top: 5px;" required></textarea>
+                    <label class="form-label">Descrição detalhada</label>
+                    <textarea id="appointmentDesc" class="form-control" rows="2" placeholder="Ex: Garrafas PET..." style="width: 100%; margin-top: 5px;" required></textarea>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
@@ -63,14 +80,58 @@
         </div>
     </div>
 
+    <div id="storeModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color: #2E7D32;"><i class="fas fa-store"></i> Loja ReciCoin</h3>
+                <button onclick="closeStore()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin:0;">Meu Saldo: <span id="userBalance" class="coin-badge">0</span></h4>
+            </div>
+
+            <h5 style="text-align: left; border-bottom: 2px solid #eee; padding-bottom: 10px;">Produtos Disponíveis</h5>
+            <div id="productsList">
+                <p class="text-center text-muted">A carregar vitrine...</p>
+            </div>
+        </div>
+    </div>
+
     <div id="historyModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 500px; text-align: left;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h3 style="margin:0; color: #2E7D32;">Meus Agendamentos</h3>
                 <button onclick="closeHistory()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
-            <div id="historyList" style="max-height: 300px; overflow-y: auto;">
-                <p class="text-center">Carregando...</p>
+            <div id="historyList" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color: #2E7D32;">Meu Perfil</h3>
+                <button onclick="closeProfile()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div class="text-center mb-4">
+                <div style="width: 100px; height: 100px; background-color: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 3rem; color: #2E7D32;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h4 id="profileName" style="margin: 0;">Carregando...</h4>
+                <p id="profileEmail" class="text-muted" style="margin: 0;"></p>
+            </div>
+
+            <div style="text-align: left; background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin-bottom: 5px;"><strong><i class="fas fa-phone"></i> Telefone:</strong> <span id="profilePhone">-</span></p>
+                <p style="margin-bottom: 0;"><strong><i class="fas fa-map-marker-alt"></i> Local:</strong> <span id="profileLocation">-</span></p>
+            </div>
+
+            <div onclick="openStoreFromProfile()" style="background-color: #fff3cd; border: 2px dashed #ffc107; padding: 15px; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#ffeeba'" onmouseout="this.style.backgroundColor='#fff3cd'">
+                <h5 style="color: #856404; margin: 0;"><i class="fas fa-star"></i> Meus Pontos</h5>
+                <h2 id="profilePoints" style="color: #2E7D32; margin: 5px 0 0 0; font-weight: bold;">0 R$C</h2>
+                <small class="text-muted">Clique aqui para trocar por produtos!</small>
             </div>
         </div>
     </div>
@@ -80,19 +141,19 @@
 
         if (token) {
             document.getElementById('navButtons').innerHTML = `
-                <button onclick="openHistory()" class="btn btn-primary" style="margin-right: 10px; background-color: #2E7D32; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Meus Agendamentos</button>
+                <button onclick="openProfile()" class="btn btn-primary" style="margin-right: 10px; background-color: #fff; color: #2E7D32; border: 1px solid #2E7D32; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;"><i class="fas fa-user-circle"></i> Perfil</button>
+                <button onclick="openStore()" class="btn btn-primary" style="margin-right: 10px; background-color: #ffc107; color: #856404; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-coins"></i> Loja</button>
+                <button onclick="openHistory()" class="btn btn-primary" style="margin-right: 10px; background-color: #2E7D32; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Histórico</button>
                 <button onclick="logout()" class="btn btn-secondary" style="border-color: red; color: red; background: white; border: 1px solid red; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Sair</button>
             `;
         }
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
-
         document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('pointsContainer');
             try {
                 const response = await fetch('/collection-point/all');
                 const points = await response.json();
-                
                 container.innerHTML = '';
                 points.forEach(point => {
                     const btnAgendar = token 
@@ -116,6 +177,7 @@
             } catch (e) { container.innerHTML = '<p>Erro ao carregar.</p>'; }
         });
 
+        // Lógica Agendamento
         function openModal(id, name, open, close) {
             document.getElementById('scheduleModal').style.display = 'flex';
             document.getElementById('modalPointName').innerText = name;
@@ -126,14 +188,10 @@
             document.getElementById('lblClose').innerText = close.substring(0,5);
         }
 
-        function closeModal() {
-            document.getElementById('scheduleModal').style.display = 'none';
-            document.getElementById('timeWarning').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('scheduleModal').style.display = 'none'; }
 
         document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const dateInput = document.getElementById('appointmentDate').value; 
             const timePart = dateInput.split('T')[1] + ":00";
             const open = document.getElementById('pointOpenTime').value;
@@ -147,7 +205,8 @@
             const payload = {
                 collectionPointId: document.getElementById('selectedPointId').value,
                 dateTime: dateInput + ":00",
-                description: document.getElementById('appointmentDesc').value
+                description: document.getElementById('appointmentDesc').value,
+                materialType: document.getElementById('appointmentMaterial').value 
             };
 
             try {
@@ -156,70 +215,115 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify(payload)
                 });
-
                 if (response.ok) {
                     alert('Agendamento realizado! Aguarde a aprovação.');
                     closeModal();
                     openHistory();
                 } else {
-                    const errorMsg = await response.text();
-                    alert('Erro ao agendar: ' + errorMsg);
+                    alert('Erro ao agendar: ' + await response.text());
                 }
             } catch (error) { alert('Erro de conexão'); }
         });
 
-        async function openHistory() {
-            document.getElementById('historyModal').style.display = 'flex';
-            const listDiv = document.getElementById('historyList');
-            listDiv.innerHTML = '<p class="text-center">Carregando...</p>';
-            
-            try {
-                const res = await fetch('/appointments/my-appointments', { 
-                    headers: { 'Authorization': 'Bearer ' + token } 
-                });
-                
-                if (!res.ok) throw new Error("Erro");
-                const list = await res.json();
+        async function openStore() {
+            document.getElementById('storeModal').style.display = 'flex';
+            loadBalance();
+            loadProducts();
+        }
 
-                if (list.length === 0) {
-                    listDiv.innerHTML = '<p class="text-center">Você não tem agendamentos.</p>';
+        function closeStore() { document.getElementById('storeModal').style.display = 'none'; }
+
+        async function loadBalance() {
+            try {
+                const res = await fetch('/points/my-balance', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.ok) {
+                    const balance = await res.json();
+                    document.getElementById('userBalance').innerText = balance + " R$C";
+                }
+            } catch (e) { console.error("Erro ao buscar saldo"); }
+        }
+
+        async function loadProducts() {
+            const listDiv = document.getElementById('productsList');
+            try {
+                const res = await fetch('/products/all', { headers: { 'Authorization': 'Bearer ' + token } });
+                const products = await res.json();
+                
+                if (products.length === 0) {
+                    listDiv.innerHTML = '<p class="text-center text-muted">Nenhum produto disponível ainda.</p>';
                     return;
                 }
 
-                listDiv.innerHTML = list.map(item => {
-                    let statusMap = {
-                        'SCHEDULED': { text: 'Aguardando Aprovação', color: '#FFF3CD', textCol: '#856404' },
-                        'CONFIRMED': { text: 'Aprovado - Leve seu item!', color: '#D1ECF1', textCol: '#0C5460' },
-                        'COMPLETED': { text: 'Coleta Realizada', color: '#D4EDDA', textCol: '#155724' },
-                        'CANCELED':  { text: 'Cancelado', color: '#F8D7DA', textCol: '#721C24' }
-                    };
-                    let st = statusMap[item.status] || { text: item.status, color: '#ccc', textCol: 'black' };
-                    let dataF = "Data Inválida";
-                    if(item.scheduledDateTime) {
-                       const d = new Date(item.scheduledDateTime);
-                       if(!isNaN(d)) dataF = d.toLocaleString('pt-BR');
-                       else if(Array.isArray(item.scheduledDateTime)) {
-                           const a = item.scheduledDateTime;
-                           dataF = new Date(a[0], a[1]-1, a[2], a[3], a[4]).toLocaleString('pt-BR');
-                       }
-                    }
-
-                    return `
-                        <div style="border-bottom:1px solid #eee; padding:10px 0;">
-                            <div style="display:flex; justify-content:space-between;">
-                                <strong>${item.collectionPoint.name}</strong>
-                                <span style="background:${st.color}; color:${st.textCol}; padding:2px 8px; border-radius:10px; font-size:0.8rem; font-weight:bold;">${st.text}</span>
-                            </div>
-                            <small style="color: #333;">${dataF}</small><br>
-                            <small style="color:#666;">Item: ${item.description || '-'}</small>
-                        </div>`;
-                }).join('');
-
-            } catch (e) { listDiv.innerHTML = '<p style="color:red">Erro ao carregar histórico.</p>'; }
+                listDiv.innerHTML = products.map(p => `
+                    <div class="product-card">
+                        <div>
+                            <strong style="font-size: 1.1rem; color: #2E7D32;">${p.name}</strong><br>
+                            <small class="text-muted">${p.description}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="coin-badge">${p.points} R$C</span><br>
+                            <button onclick="redeemProduct(${p.id}, '${p.name}')" class="btn btn-sm btn-success" style="margin-top: 5px;">Resgatar</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) { listDiv.innerHTML = '<p class="text-danger">Erro ao carregar produtos.</p>'; }
         }
 
-        function closeHistory() {
-            document.getElementById('historyModal').style.display = 'none';
+        async function redeemProduct(productId, productName) {
+            if (!confirm(`Deseja gastar os seus pontos para resgatar "${productName}"?`)) return;
+
+            try {
+                const res = await fetch(`/products/${productId}/redeem`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.ok) {
+                    const msg = await res.text();
+                    alert("Sucesso! " + msg);
+                    loadBalance(); 
+                } else {
+                    const erro = await res.text();
+                    alert(erro);
+                }
+            } catch (e) { alert("Erro de conexão."); }
+        }
+
+        async function openProfile() {
+            document.getElementById('profileModal').style.display = 'flex';
+            
+            try {
+                const resUser = await fetch('/user', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (resUser.ok) {
+                    const user = await resUser.json();
+                    document.getElementById('profileName').innerText = user.name;
+                    document.getElementById('profileEmail').innerText = user.email;
+                    document.getElementById('profilePhone').innerText = user.phone || 'Não informado';
+                    document.getElementById('profileLocation').innerText = (user.city && user.state) ? `${user.city} - ${user.state}` : 'Não informado';
+                }
+                
+                const resPoints = await fetch('/points/my-balance', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (resPoints.ok) {
+                    const balance = await resPoints.json();
+                    document.getElementById('profilePoints').innerText = balance + " R$C";
+                }
+            } catch (e) { console.error("Erro ao carregar perfil"); }
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').style.display = 'none';
+        }
+
+        function openStoreFromProfile() {
+            closeProfile();
+            openStore(); 
+        }
+
+        async function openHistory() { 
+            document.getElementById('historyModal').style.display = 'flex'; 
+        }
+        function closeHistory() { 
+            document.getElementById('historyModal').style.display = 'none'; 
         }
     </script>
 </body>

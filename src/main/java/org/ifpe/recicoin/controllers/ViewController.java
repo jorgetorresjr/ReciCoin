@@ -36,4 +36,8 @@ public class ViewController {
     public String dashboardPage() {
         return "dashboardPonto";
     }
+    @GetMapping("/loja-empresa")
+    public String lojaEmpresa() {
+        return "lojaEmpresa"; 
+    }
 }
