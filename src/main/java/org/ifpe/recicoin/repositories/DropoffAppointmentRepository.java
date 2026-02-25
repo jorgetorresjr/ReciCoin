@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface DropoffAppointmentRepository extends JpaRepository<DropoffAppointment, Long> {
-    List<DropoffAppointment> findByCollectionPoint(CollectionPoint collectionPoint);
-    List<DropoffAppointment> findByUser(org.ifpe.recicoin.entities.User user);
+
+    List<DropoffAppointment> findByCollectionPointId(Long collectionPointId);
+    List<DropoffAppointment> findByUserId(Long userId);
 }
