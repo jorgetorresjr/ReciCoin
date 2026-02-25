@@ -2,26 +2,25 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Empresa - ReciCoin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .status-badge { font-size: 0.85rem; padding: 6px 10px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
-        .btn-action { margin-right: 5px; margin-bottom: 5px; }
+        .badge-scheduled { background-color: #ffc107; color: #000; }
+        .badge-confirmed { background-color: #0dcaf0; color: #000; }
+        .badge-completed { background-color: #198754; color: #fff; }
+        .badge-cancelled { background-color: #dc3545; color: #fff; }
     </style>
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4 shadow">
+    <nav class="navbar navbar-dark bg-success shadow">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">ReciCoin Parceiros</a>
-            <div class="d-flex">
-                <button onclick="logout()" class="btn btn-outline-light btn-sm">Sair</button>
-            </div>
+            <span class="navbar-brand fw-bold">ReciCoin - Painel de Coleta</span>
+            <button onclick="logout()" class="btn btn-outline-light btn-sm">Sair</button>
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container mt-5">
         <div class="card shadow border-0">
             <div class="card-header bg-white py-3">
                 <h4 class="text-success mb-0">Agendamentos Recebidos</h4>
@@ -31,20 +30,15 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4">Data e Hora</th>
+                                <th>Data e Hora</th>
                                 <th>Cliente</th>
-                                <th>Item (Descrição)</th>
+                                <th>Material / Item</th>
                                 <th>Status Atual</th>
-                                <th class="text-end pe-4">Ações</th>
+                                <th class="text-end">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <div class="spinner-border text-success" role="status"></div>
-                                    <div class="mt-2">Carregando agendamentos...</div>
-                                </td>
-                            </tr>
+                        <tbody id="scheduleList">
+                            <tr><td colspan="5" class="text-center py-4">A carregar...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -52,96 +46,89 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login';
-        }
+        if (!token) window.location.href = '/login';
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = '/login';
-        }
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
+
         async function loadSchedule() {
             try {
                 const response = await fetch('/appointments/my-schedule', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
-
-                if (response.status === 403) {
-                    alert("Acesso negado. Por favor, faça login como Empresa.");
-                    logout();
-                    return;
-                }
+                
+                if (!response.ok) throw new Error("Erro de autenticação");
                 const list = await response.json();
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = '';
+                const tbody = document.getElementById('scheduleList');
 
                 if (list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">Nenhum agendamento recebido.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Nenhum agendamento encontrado.</td></tr>';
                     return;
                 }
 
-                list.forEach(item => {
-                    let dataFormatada = "Data Inválida";
-                    if (item.scheduledDateTime) {
-                        const d = item.scheduledDateTime;
-                        if (Array.isArray(d)) {
-                            const dataObj = new Date(d[0], d[1] - 1, d[2], d[3], d[4]);
-                            dataFormatada = dataObj.toLocaleString('pt-BR');
-                        } else {
-                            dataFormatada = new Date(d).toLocaleString('pt-BR');
-                        }
+                tbody.innerHTML = list.map(item => {
+                    let dataF = new Date(item.scheduledDateTime).toLocaleString('pt-BR');
+                    if (Array.isArray(item.scheduledDateTime)) {
+                        const a = item.scheduledDateTime;
+                        dataF = new Date(a[0], a[1]-1, a[2], a[3], a[4]).toLocaleString('pt-BR');
                     }
-                    let statusHtml = '';
-                    let buttonsHtml = '';
+
+                    let statusBadge = '';
+                    let acoes = '';
 
                     if (item.status === 'SCHEDULED') {
-                        statusHtml = '<span class="badge bg-warning text-dark status-badge">Aguardando</span>';
-                        buttonsHtml = '<button onclick="updateStatus(' + item.id + ', \'accept\')" class="btn btn-sm btn-primary btn-action">Aceitar</button>' +
-                                      '<button onclick="updateStatus(' + item.id + ', \'cancel\')" class="btn btn-sm btn-outline-danger btn-action">Recusar</button>';
-                    
+                        statusBadge = '<span class="badge badge-scheduled px-2 py-1 rounded">AGUARDANDO</span>';
+                        acoes = `
+                            <button class="btn btn-sm btn-primary" onclick="updateStatus(${item.id}, 'accept')">Aceitar</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="updateStatus(${item.id}, 'cancel')">Recusar</button>
+                        `;
                     } else if (item.status === 'CONFIRMED') {
-                        statusHtml = '<span class="badge bg-info text-dark status-badge">Aprovado</span>';
-                        buttonsHtml = '<button onclick="updateStatus(' + item.id + ', \'complete\')" class="btn btn-sm btn-success btn-action">Recebi o Item</button>' +
-                                      '<button onclick="updateStatus(' + item.id + ', \'cancel\')" class="btn btn-sm btn-outline-secondary btn-action">Cliente Faltou</button>';
-                    
+                        statusBadge = '<span class="badge badge-confirmed px-2 py-1 rounded">APROVADO</span>';
+                        acoes = `
+                            <div class="d-flex flex-column gap-1">
+                                <button class="btn btn-sm btn-success fw-bold shadow-sm" onclick="updateStatus(${item.id}, 'complete')">Recebi o Item!</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="updateStatus(${item.id}, 'cancel')">Cancelar</button>
+                            </div>
+                        `;
                     } else if (item.status === 'COMPLETED') {
-                        statusHtml = '<span class="badge bg-success status-badge">Finalizado</span>';
-                        buttonsHtml = '<span class="text-muted small">Concluído</span>';
-                    
+                        statusBadge = '<span class="badge badge-completed px-2 py-1 rounded">CONCLUÍDO</span>';
+                        acoes = `<span class="text-muted small">Pontos Gerados: ${item.pointsAwarded || '?'}</span>`;
                     } else {
-                        statusHtml = '<span class="badge bg-danger status-badge">Cancelado</span>';
-                        buttonsHtml = '<span class="text-muted small">-</span>';
+                        statusBadge = '<span class="badge badge-cancelled px-2 py-1 rounded">CANCELADO</span>';
+                        acoes = '<span class="text-muted">-</span>';
                     }
-                    tbody.innerHTML += `
+
+                    return `
                         <tr>
-                            <td class="ps-4 fw-bold text-secondary">${dataFormatada}</td>
-                            <td>
-                                <div class="fw-bold text-dark">${item.user ? item.user.name : 'Cliente'}</div>
-                                <div class="small text-muted">${item.user ? item.user.email : ''}</div>
-                            </td>
-                            <td>${item.description || '<em class="text-muted">Sem descrição</em>'}</td>
-                            <td>${statusHtml}</td>
-                            <td class="text-end pe-4">${buttonsHtml}</td>
+                            <td><strong>${dataF.split(',')[0]}</strong><br><small class="text-muted">${dataF.split(',')[1]}</small></td>
+                            <td>${item.user.name}<br><small class="text-muted">${item.user.email}</small></td>
+                            <td><span class="fw-bold text-success">${item.materialType || 'Outros'}</span><br><small class="text-muted">${item.description}</small></td>
+                            <td>${statusBadge}</td>
+                            <td class="text-end">${acoes}</td>
                         </tr>
                     `;
-                });
-
+                }).join('');
             } catch (error) {
-                console.error(error);
-                document.getElementById('tableBody').innerHTML = 
-                    '<tr><td colspan="5" class="text-center text-danger py-4">Erro ao carregar dados. Verifique o console.</td></tr>';
+                document.getElementById('scheduleList').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Erro ao carregar agendamentos.</td></tr>';
             }
         }
+
         async function updateStatus(id, action) {
-            if (!confirm("Tem certeza que deseja atualizar este agendamento?")) return;
+            let url = '/appointments/' + id + '/' + action;
+            
+            if (action === 'complete') {
+                const peso = prompt("Qual foi o peso do material entregue em Kg? (Use ponto para decimais, ex: 2.5)");
+                if (!peso || isNaN(peso)) {
+                    alert("Peso inválido. Operação cancelada.");
+                    return;
+                }
+                url = url + '?weightKg=' + peso;
+            } else if (action === 'cancel') {
+                if (!confirm("Tem certeza que deseja RECUSAR este agendamento?")) return;
+            }
 
             try {
-                const url = '/appointments/' + id + '/' + action;
-
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -150,12 +137,14 @@
                 if (response.ok) {
                     loadSchedule();
                 } else {
-                    alert("Erro ao atualizar. Tente novamente.");
+                    const erro = await response.text();
+                    alert("Erro ao atualizar: " + erro);
                 }
             } catch (error) {
-                alert("Erro de conexão com o servidor.");
+                alert("Erro de conexão.");
             }
         }
+
         loadSchedule();
     </script>
 </body>
