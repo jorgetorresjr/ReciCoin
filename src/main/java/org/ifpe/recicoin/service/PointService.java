@@ -1,6 +1,6 @@
 package org.ifpe.recicoin.service;
 
-import org.ifpe.recicoin.entities.MaterialType;
+import org.ifpe.recicoin.entities.enums.MaterialType;
 import org.ifpe.recicoin.entities.PointTransaction;
 import org.ifpe.recicoin.entities.User;
 import org.ifpe.recicoin.entities.enums.TransactionType;

@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import org.ifpe.recicoin.entities.enums.AppointmentStatus;
+import org.ifpe.recicoin.entities.enums.MaterialType;
 
 @Table(name = "dropoff_appointment")
 @Entity
