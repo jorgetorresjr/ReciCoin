@@ -40,7 +40,8 @@ public class CompanyService {
     }
 
     public UserDetails findUserByEmail(String email) {
-        return companyRepository.findByEmail(email);
+        return companyRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Company não encontrada: " + email));
     }
 
     public List<Company> findAll() {

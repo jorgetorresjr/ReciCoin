@@ -2,13 +2,12 @@ package org.ifpe.recicoin.controllers;
 
 import org.ifpe.recicoin.entities.*;
 import org.ifpe.recicoin.entities.DTOs.AppointmentDTO;
-import org.ifpe.recicoin.entities.DTOs.AppointmentResponseDTO;
-import org.ifpe.recicoin.mapper.DropoffAppointmentMapper;
+import org.ifpe.recicoin.entities.enums.AppointmentStatus;
+import org.ifpe.recicoin.repositories.*;
 import org.ifpe.recicoin.service.DeliveryApplicationService;
-import org.ifpe.recicoin.service.DropoffAppointmentService;
+import org.ifpe.recicoin.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,89 +21,101 @@ public class DropoffAppointmentController {
     private DeliveryApplicationService deliveryService;
 
     @Autowired
-    private DropoffAppointmentService appointmentService;
+    private DropoffAppointmentRepository appointmentRepository;
+
+    @Autowired
+    private CollectionPointRepository pointRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createAppointment(@RequestBody AppointmentDTO dto) {
         try {
-            User user = getAuthenticatedUser();
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-            DropoffAppointment created = appointmentService.schedule(
-                    user.getId(),
-                    dto.collectionPointId(),
-                    dto.dateTime(),
-                    dto.description(),
-                    dto.materialType()
-            );
+            if (!(principal instanceof User)) {
+                return ResponseEntity.status(403).body("Apenas usuários podem criar agendamento.");
+            }
 
-            return ResponseEntity.ok(DropoffAppointmentMapper.toDTO(created));
+            User user = (User) principal;
 
+            CollectionPoint point = pointRepository.findById(dto.collectionPointId())
+                    .orElseThrow(() -> new RuntimeException("Ponto não encontrado."));
+
+            DropoffAppointment appt = new DropoffAppointment();
+            appt.setUser(user);
+            appt.setCollectionPoint(point);
+            appt.setScheduledDateTime(dto.dateTime());
+            appt.setDescription(dto.description());
+            appt.setMaterialType(dto.materialType());
+            appt.setStatus(AppointmentStatus.SCHEDULED);
+
+            appointmentRepository.save(appt);
+            return ResponseEntity.ok("Agendado! Aguardando aprovação do ponto.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         }
-
     }
 
     @GetMapping("/my-appointments")
-    public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointments() {
+    public ResponseEntity<List<DropoffAppointment>> getUserAppointments() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        User user = getAuthenticatedUser();
+        if (!(principal instanceof User)) {
+            return ResponseEntity.status(403).body(null);
+        }
 
-        List<AppointmentResponseDTO> response =
-                appointmentService.findByUser(user.getId())
-                        .stream()
-                        .map(DropoffAppointmentMapper::toDTO)
-                        .toList();
+        User user = (User) principal;
 
-        return ResponseEntity.ok(response);
+        List<DropoffAppointment> appointments = appointmentRepository.findByUserId(user.getId());
+        return ResponseEntity.ok(appointments);
     }
-
 
     @GetMapping("/my-schedule")
     public ResponseEntity<List<DropoffAppointment>> getPointAppointments() {
-        CollectionPoint point = getAuthenticatedPoint();
-        return ResponseEntity.ok(appointmentService.findByCollectionPoint(point.getId()));
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("Principal: " + principal);
+        
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        CollectionPoint point = pointRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Ponto não encontrado"));
+        return ResponseEntity.ok(appointmentRepository.findByCollectionPoint(point));
     }
 
     @PostMapping("/{id}/accept")
     public ResponseEntity<?> accept(@PathVariable Long id) {
-        CollectionPoint point = getAuthenticatedPoint();
-        appointmentService.accept(id, point.getId());
-        return ResponseEntity.ok().build();
+        return updateStatus(id, AppointmentStatus.CONFIRMED);
     }
 
     @PostMapping("/{id}/cancel")
     public ResponseEntity<?> cancel(@PathVariable Long id) {
-        User user = getAuthenticatedUser();
-        appointmentService.cancel(id, user.getId());
+        return updateStatus(id, AppointmentStatus.CANCELLED);
+    }
+
+    private ResponseEntity<?> updateStatus(Long id, AppointmentStatus status) {
+        DropoffAppointment appt = appointmentRepository.findById(id).orElseThrow();
+        appt.setStatus(status);
+        appointmentRepository.save(appt);
         return ResponseEntity.ok().build();
     }
 
-
     @PostMapping("/{id}/complete")
-    public ResponseEntity<?> completeAppointment(@PathVariable Long id,
-                                                 @RequestParam Double weightKg) {
+    public ResponseEntity<?> completeAppointment(@PathVariable Long id, @RequestParam Double weightKg) {
         try {
-            User collector = getAuthenticatedUser();
-            deliveryService.confirmDelivery(id, collector.getId(), weightKg);
+            DropoffAppointment appt = appointmentRepository.findById(id).orElseThrow();
+
+            deliveryService.confirmDelivery(id, appt.getUser().getId(), weightKg);
+
+            appt.setStatus(AppointmentStatus.COMPLETED);
+            appointmentRepository.save(appt);
+
             return ResponseEntity.ok("Entrega confirmada e pontos gerados!");
-
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         }
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!(auth.getPrincipal() instanceof User user))
-            throw new RuntimeException("Usuário não autenticado");
-        return user;
-    }
-
-    private CollectionPoint getAuthenticatedPoint() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!(auth.getPrincipal() instanceof CollectionPoint point))
-            throw new RuntimeException("Ponto de coleta não autenticado");
-        return point;
     }
 }

@@ -2,8 +2,9 @@ package org.ifpe.recicoin.repositories;
 
 import org.ifpe.recicoin.entities.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Optional;
 
 public interface CompanyRepository extends JpaRepository<Company, Long> {
-    public UserDetails findByEmail(String email);
+    Optional<Company> findByEmail(String email); // agora funciona com Optional<Company>
 }
