@@ -43,7 +43,8 @@ public class CollectionPointService {
     }
 
     public UserDetails findByEmail(String email) {
-        return collectionPointRepository.findByEmail(email);
+        return collectionPointRepository.findByEmail(email)
+                .orElse(null);
     }
 
     public List<CollectionPoint> findAll() {

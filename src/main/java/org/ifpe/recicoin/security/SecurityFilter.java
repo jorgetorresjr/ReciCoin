@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.ifpe.recicoin.repositories.CollectionPointRepository;
+import org.ifpe.recicoin.repositories.CompanyRepository;
 import org.ifpe.recicoin.repositories.UserRepository;
 import org.ifpe.recicoin.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ public class SecurityFilter extends OncePerRequestFilter {
     private UserRepository userRepository;
     @Autowired
     private CollectionPointRepository collectionPointRepository;
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -36,31 +39,28 @@ public class SecurityFilter extends OncePerRequestFilter {
             return;
         }
 
-        var token = this.recoverToken(request);
-
-        // 🔍 LOG 1 — token recebido
-        System.out.println("TOKEN = " + token);
+        String token = recoverToken(request);
 
         if (token != null) {
             try {
-                var email = tokenService.validateToken(token);
+                String email = tokenService.validateToken(token);
 
-                // 🔍 LOG 2 — email extraído do token
-                System.out.println("EMAIL = " + email);
-
-                UserDetails user = userRepository.findByEmail(email);
+                UserDetails user = userRepository.findByEmail(email).orElse(null);
 
                 if (user == null) {
-                    user = collectionPointRepository.findByEmail(email);
+                    user = collectionPointRepository.findByEmail(email).orElse(null);
                 }
 
-                // 🔍 LOG 3 — usuário encontrado (ou null)
-                System.out.println("USER = " + user);
+                if (user == null) {
+                    user = companyRepository.findByEmail(email).orElse(null);
+                }
 
                 if (user != null) {
                     var authentication = new UsernamePasswordAuthenticationToken(
                             user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    SecurityContextHolder.clearContext();
                 }
 
             } catch (Exception e) {
@@ -68,20 +68,17 @@ public class SecurityFilter extends OncePerRequestFilter {
                 SecurityContextHolder.clearContext();
             }
         } else {
-            // 🔍 LOG 4 — token ausente
             System.out.println("TOKEN NULO — nenhuma autenticação enviada");
         }
 
         filterChain.doFilter(request, response);
     }
 
-
     private String recoverToken(HttpServletRequest request) {
-        var header = request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
             return null;
         }
-
         return header.substring(7);
     }
 

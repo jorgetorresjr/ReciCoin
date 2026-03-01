@@ -319,8 +319,47 @@
             openStore(); 
         }
 
-        async function openHistory() { 
-            document.getElementById('historyModal').style.display = 'flex'; 
+        async function openHistory() {
+            document.getElementById('historyModal').style.display = 'flex';
+            const listDiv = document.getElementById('historyList');
+            listDiv.innerHTML = '<p class="text-center">Carregando...</p>';
+
+            try {
+                const res = await fetch('/appointments/my-appointments', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error("Erro ao buscar histórico");
+
+                const list = await res.json();
+
+                if (list.length === 0) {
+                    listDiv.innerHTML = '<p class="text-center">Você não tem agendamentos.</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = list.map(item => {
+                    let statusMap = {
+                        'SCHEDULED': { text: 'Aguardando Aprovação', color: '#FFF3CD', textCol: '#856404' },
+                        'CONFIRMED': { text: 'Aprovado - Leve seu item!', color: '#D1ECF1', textCol: '#0C5460' },
+                        'COMPLETED': { text: 'Coleta Realizada', color: '#D4EDDA', textCol: '#155724' },
+                        'CANCELED':  { text: 'Cancelado', color: '#F8D7DA', textCol: '#721C24' }
+                    };
+                    let st = statusMap[item.status] || { text: item.status, color: '#ccc', textCol: 'black' };
+                    let dataF = item.scheduledDateTime ? new Date(item.scheduledDateTime).toLocaleString('pt-BR') : 'Data Inválida';
+
+                    return `
+                <div style="border-bottom:1px solid #eee; padding:10px 0;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${item.collectionPoint.name}</strong>
+                        <span style="background:${st.color}; color:${st.textCol}; padding:2px 8px; border-radius:10px; font-size:0.8rem; font-weight:bold;">${st.text}</span>
+                    </div>
+                    <small style="color: #333;">${dataF}</small><br>
+                    <small style="color:#666;">Item: ${item.description || '-'}</small>
+                </div>`;
+                }).join('');
+            } catch (e) {
+                listDiv.innerHTML = '<p style="color:red">Erro ao carregar histórico.</p>';
+            }
         }
         function closeHistory() { 
             document.getElementById('historyModal').style.display = 'none'; 

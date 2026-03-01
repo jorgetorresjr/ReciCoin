@@ -1,6 +1,7 @@
 package org.ifpe.recicoin.service;
 
 import org.ifpe.recicoin.repositories.CollectionPointRepository;
+import org.ifpe.recicoin.repositories.CompanyRepository;
 import org.ifpe.recicoin.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,17 +17,25 @@ public class AuthorizationService implements UserDetailsService {
 
     @Autowired
     private CollectionPointRepository collectionPointRepository;
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserDetails user = userRepository.findByEmail(email);
+        UserDetails user = userRepository.findByEmail(email).orElse(null);
+
         if (user == null) {
-            user = collectionPointRepository.findByEmail(email);
+            user = collectionPointRepository.findByEmail(email).orElse(null);
         }
+
         if (user == null) {
-            throw new UsernameNotFoundException("Usuário ou Empresa não encontrado: " + email);
+            user = companyRepository.findByEmail(email).orElse(null);
         }
-        
+
+        if (user == null) {
+            throw new UsernameNotFoundException("Usuário, Ponto ou Empresa não encontrado: " + email);
+        }
+
         return user;
     }
 }
