@@ -132,7 +132,17 @@
                 <h5 style="color: #856404; margin: 0;"><i class="fas fa-star"></i> Meus Pontos</h5>
                 <h2 id="profilePoints" style="color: #2E7D32; margin: 5px 0 0 0; font-weight: bold;">0 R$C</h2>
                 <small class="text-muted">Clique aqui para trocar por produtos!</small>
+                <button onclick="openMyProducts()" class="btn btn-outline-success" style="width: 100%; margin-top: 15px; font-weight: bold;"><i class="fas fa-box-open"></i> Ver Meus Produtos Resgatados</button>
             </div>
+        </div>
+    </div>
+    <div id="myProductsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px; text-align: left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color: #2E7D32;"><i class="fas fa-gift"></i> Meus Produtos</h3>
+                <button onclick="closeMyProducts()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="redemptionsList" style="max-height: 300px; overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -246,7 +256,7 @@
         async function loadProducts() {
             const listDiv = document.getElementById('productsList');
             try {
-                const res = await fetch('/products/all', { headers: { 'Authorization': 'Bearer ' + token } });
+                const res = await fetch('/marketplace/products', { headers: { 'Authorization': 'Bearer ' + token } });
                 const products = await res.json();
                 
                 if (products.length === 0) {
@@ -273,7 +283,7 @@
             if (!confirm(`Deseja gastar os seus pontos para resgatar "${productName}"?`)) return;
 
             try {
-                const res = await fetch(`/products/${productId}/redeem`, {
+                const res = await fetch('/marketplace/redeem/' + productId, {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -363,6 +373,46 @@
         }
         function closeHistory() { 
             document.getElementById('historyModal').style.display = 'none'; 
+        }
+        async function openMyProducts() {
+            closeProfile();
+            document.getElementById('myProductsModal').style.display = 'flex';
+            const listDiv = document.getElementById('redemptionsList');
+            listDiv.innerHTML = '<p class="text-center">Buscando seus produtos...</p>';
+
+            try {
+                const res = await fetch('/marketplace/my-redemptions', { headers: { 'Authorization': 'Bearer ' + token } });
+                const list = await res.json();
+                
+                if (list.length === 0) {
+                    listDiv.innerHTML = '<p class="text-center text-muted">Você ainda não resgatou produtos.</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = list.map(item => {
+                    let dateF = new Date(item.date).toLocaleDateString('pt-BR');
+                    let statusLabel = item.status.replace('_', ' ');
+                    
+                    return `
+                        <div style="border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 10px; background-color: #f9f9f9;">
+                            <strong style="color: #2E7D32; font-size: 1.1rem;">${item.productName}</strong><br>
+                            <small class="text-muted">Parceiro: ${item.companyName}</small><br>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                                <span style="background-color: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">
+                                    <i class="fas fa-clock"></i> ${statusLabel}
+                                </span>
+                                <small class="text-muted">${dateF}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) { 
+                listDiv.innerHTML = '<p class="text-danger">Erro ao carregar produtos.</p>'; 
+            }
+        }
+
+        function closeMyProducts() { 
+            document.getElementById('myProductsModal').style.display = 'none'; 
         }
     </script>
 </body>

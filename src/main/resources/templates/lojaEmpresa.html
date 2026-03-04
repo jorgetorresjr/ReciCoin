@@ -32,8 +32,14 @@
                                 <textarea id="pDesc" class="form-control" rows="2" placeholder="Ex: Adubo orgânico perfeito para plantas." required></textarea>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Custo em ReciCoins</label>
-                                <input type="number" id="pPoints" class="form-control" placeholder="Ex: 150" required>
+                                <label class="form-label fw-bold">Custo em ReciCoins (Pré-definido)</label>
+                                <select id="pPoints" class="form-select" required>
+                                    <option value="">Selecione o valor do item...</option>
+                                    <option value="50">50 R$C - Item Simples</option>
+                                    <option value="150">150 R$C - Item Médio</option>
+                                    <option value="300">300 R$C - Item Premium</option>
+                                    <option value="500">500 R$C - Item Especial</option>
+                                </select>
                             </div>
                             <button type="submit" class="btn btn-success w-100 fw-bold">Adicionar à Vitrine</button>
                         </form>
@@ -59,7 +65,7 @@
             };
 
             try {
-                const response = await fetch('/products/create', {
+                const response = await fetch('/products', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify(payload)

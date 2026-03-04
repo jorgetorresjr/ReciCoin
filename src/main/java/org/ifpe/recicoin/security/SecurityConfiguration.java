@@ -35,9 +35,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/auth/**").permitAll()
 
 
-                        .requestMatchers("/", "/login", "/cadastro", "/cadastro-ponto", "/pontos-coleta", "/meu-painel", "/loja-empresa").permitAll()
+                        .requestMatchers("/", "/login", "/cadastro", "/cadastro-ponto", "/pontos-coleta", "/meu-painel", "/loja-empresa", "/cadastro-empresa").permitAll()
 
-                        .requestMatchers("/collection-point/all").permitAll()
+                        .requestMatchers("/collection-point/all", "/companies/register").permitAll()
 
                         .anyRequest().authenticated()
                 )
