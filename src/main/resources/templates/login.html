@@ -16,11 +16,10 @@
             <h1 style="color: var(--cor-primaria);"><i class="fas fa-leaf"></i> ReciCoin</h1>
             <p class="mb-3">Entre para transformar o mundo.</p>
 
-            <div style="margin-bottom: 20px;">
-                <button type="button" class="btn btn-secondary" onclick="setLoginType('user')" id="btnUser">Sou
-                    Usuário</button>
-                <button type="button" class="btn btn-secondary" onclick="setLoginType('point')" id="btnPoint">Sou Ponto
-                    de Coleta</button>
+            <div style="margin-bottom: 20px; display: flex; justify-content: center; gap: 5px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setLoginType('user')" id="btnUser">Usuário</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setLoginType('point')" id="btnPoint">Ponto de Coleta</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setLoginType('company')" id="btnCompany">Empresa</button>
             </div>
 
             <form id="loginForm">
@@ -41,6 +40,7 @@
                 <p>Não tem conta?</p>
                 <a href="/cadastro">Cadastrar Usuário</a> |
                 <a href="/cadastro-ponto">Cadastrar Ponto</a>
+                <a href="/cadastro-empresa">Cadastrar Empresa</a>
             </div>
         </div>
     </div>
@@ -51,12 +51,14 @@
         function setLoginType(type) {
             document.getElementById('btnUser').style.backgroundColor = type === 'user' ? 'var(--cor-primaria)' : 'transparent';
             document.getElementById('btnUser').style.color = type === 'user' ? '#fff' : 'var(--cor-primaria)';
-
             document.getElementById('btnPoint').style.backgroundColor = type === 'point' ? 'var(--cor-primaria)' : 'transparent';
             document.getElementById('btnPoint').style.color = type === 'point' ? '#fff' : 'var(--cor-primaria)';
+            document.getElementById('btnCompany').style.backgroundColor = type === 'company' ? 'var(--cor-primaria)' : 'transparent';
+            document.getElementById('btnCompany').style.color = type === 'company' ? '#fff' : 'var(--cor-primaria)';
 
             if (type === 'user') loginUrl = '/auth/login';
-            else loginUrl = '/auth/collection-point/login';
+            else if (type === 'point') loginUrl = '/auth/collection-point/login';
+            else loginUrl = '/auth/company/login';
         }
 
         setLoginType('user');
@@ -77,11 +79,9 @@
                     const data = await response.json();
                     localStorage.setItem('token', data.token);
 
-                    if (loginUrl.includes('collection-point')) {
-                        window.location.href = '/meu-painel'; // <--- AGORA REDIRECIONA CERTO
-                    } else {
-                        window.location.href = '/pontos-coleta';
-                    }
+                    if (loginUrl.includes('collection-point')) window.location.href = '/meu-painel';
+                    else if (loginUrl.includes('company')) window.location.href = '/loja-empresa';
+                    else window.location.href = '/pontos-coleta';
 
                 } else {
                     alert('Erro no login. Verifique suas credenciais.');
